@@ -8,6 +8,7 @@ type TransportAdapter struct {
 	transportType string
 	transportTag  string
 	dependencies  []string
+	fallback      *fallbackServer // remote servers only, see client_fallback.go
 }
 
 func NewTransportAdapter(transportType string, transportTag string, dependencies []string) TransportAdapter {
@@ -39,6 +40,7 @@ func NewTransportAdapterWithRemoteOptions(transportType string, transportTag str
 		transportType: transportType,
 		transportTag:  transportTag,
 		dependencies:  dependencies,
+		fallback:      newFallbackServer(remoteOptions),
 	}
 }
 
@@ -52,4 +54,8 @@ func (a *TransportAdapter) Tag() string {
 
 func (a *TransportAdapter) Dependencies() []string {
 	return a.dependencies
+}
+
+func (a *TransportAdapter) fallbackState() *fallbackServer {
+	return a.fallback
 }
