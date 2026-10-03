@@ -48,6 +48,7 @@ type Box struct {
 	createdAt           time.Time
 	debugOptions        option.DebugOptions
 	debugHTTPServer     *http.Server
+	memoryLimit         func()
 	logFactory          log.Factory
 	logger              log.ContextLogger
 	network             *route.NetworkManager
@@ -536,6 +537,7 @@ func (s *Box) preStart() error {
 		return E.Cause(err, "start logger")
 	}
 	applyDebugOptions(s.debugOptions)
+	s.memoryLimit = startMemoryLimit(s.logger, s.debugOptions)
 	s.debugHTTPServer, err = startDebugHTTPServer(s.debugOptions)
 	if err != nil {
 		return err
@@ -611,6 +613,9 @@ func (s *Box) Close() error {
 		close(s.done)
 	}
 	var err error
+	if s.memoryLimit != nil {
+		s.memoryLimit()
+	}
 	if s.debugHTTPServer != nil {
 		err = E.Append(err, s.debugHTTPServer.Close(), func(err error) error {
 			return E.Cause(err, "close debug HTTP server")
